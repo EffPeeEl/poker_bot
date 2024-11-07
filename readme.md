@@ -30,7 +30,7 @@ This project aims to create an environment where different poker-playing bots ca
 
 
 ## BB RL Agent playing hands against BB bots
-<img src="imgs\Figure_1.png" alt="rla_chips" width="500"/>
+<img src="imgs\Figure_1.png" alt="rla_chips" width="750"/>
 
 ## Features
 
