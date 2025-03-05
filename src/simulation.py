@@ -145,6 +145,6 @@ if __name__ == "__main__":
 
     game = TexasHoldem(small_blind=5, big_blind=10, player_list=players)
 
-    sim = Simulation(game, iterations=400)
+    sim = Simulation(game, iterations=1000)
     sim.run_simulation()
     sim.display_stats()

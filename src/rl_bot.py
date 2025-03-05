@@ -5,31 +5,39 @@ from tensorflow.keras import layers
 from player import Player
 from action import Action
 from action_validator import ActionValidator
+from models.dueling_model import build_dueling_model
+import config
 
 class RLBot(Player):
     """Everything is normalized by BB and rewarded by Chip difference"""
     def __init__(self, name, chips, state_size, action_size):
         super().__init__(name, chips)
-        self.action_types = ["check", "call", "raise", "fold"]
-        self.state_size = state_size
-        self.action_size = action_size
-        self.memory = []
         
-        self.memory_capacity = 10000
-        self.gamma = 0.99  # discount factor
-        self.epsilon = 1.0  # exploration rate
-        self.epsilon_min = 0.05
-        self.epsilon_decay = 0.995
-        self.learning_rate = 0.001
-        self.batch_size = 64
-        self.train_start = 1000
-        self.train_freq = 1 
+        
+        self.state_size = config.STATE_SIZE #maybe just remove
+        self.action_size = config.ACTION_SIZE #maybe just remove
+        self.learning_rate = config.LEARNING_RATE
+        self.batch_size = config.BATCH_SIZE
+        self.gamma = config.GAMMA
+        self.epsilon = config.EPSILON_START
+        self.epsilon_min = config.EPSILON_MIN
+        self.epsilon_decay = config.EPSILON_DECAY
+        self.memory_capacity = config.MEMORY_CAPACITY
+        self.train_start = config.TRAIN_START
+        self.train_freq = config.TRAIN_FREQ
         
         self.previous_raise_amount = None
 
-        self.model = self.build_continous_model()
-        self.target_model = self.build_continous_model()
+
+        ##Load / Build model sec
+        # self.model = self.build_continous_model()
+        # self.target_model = self.build_continous_model()
+        # self.update_target_model()
+        self.model = build_dueling_model(self.state_size, self.action_size, self.learning_rate)
+        self.target_model = build_dueling_model(self.state_size, self.action_size, self.learning_rate)
         self.update_target_model()
+
+        #end sec
 
         self.hand_actions = []
         self.hand_strengths = []
