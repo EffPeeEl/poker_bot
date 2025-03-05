@@ -2,8 +2,7 @@ import tensorflow as tf
 from tensorflow.keras import layers
 
 def build_dueling_model(state_size, action_size, learning_rate=0.001):
-    
-    
+
     input_layer = layers.Input(shape=(state_size,))
     
     # Shared hidden layers with Batch Normalization
@@ -25,15 +24,13 @@ def build_dueling_model(state_size, action_size, learning_rate=0.001):
     
     # Combine streams: Q = V + (A - mean(A))
     advantage_mean = layers.Lambda(lambda a: tf.reduce_mean(a, axis=1, keepdims=True))(advantage)
-    q_values = layers.Add()([value, layers.Subtract()([advantage, advantage_mean])])
+    q_values = layers.Add(name='action_output')([value, layers.Subtract()([advantage, advantage_mean])])
     
     # Separate branch for continuous raise output
     raise_branch = layers.Dense(128, activation='relu')(x)
     raise_output = layers.Dense(1, activation='linear', name='raise_output')(raise_branch)
     
     # Create model with two outputs:
-    # - 'action_output': Q-values for discrete actions
-    # - 'raise_output': continuous raise amount
     model = tf.keras.Model(inputs=input_layer, outputs=[q_values, raise_output])
     
     model.compile(
@@ -42,3 +39,9 @@ def build_dueling_model(state_size, action_size, learning_rate=0.001):
     )
     
     return model
+
+if __name__ == "__main__":
+    state_size = 138  # your defined state size
+    action_size = 4   # number of discrete actions: check, call, raise, fold
+    model = build_dueling_model(state_size, action_size)
+    model.summary()
