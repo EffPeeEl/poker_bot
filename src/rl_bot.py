@@ -28,7 +28,8 @@ class RLBot(Player):
         
         self.previous_raise_amount = None
 
-
+        self.action_types = ["check", "call", "raise", "fold"]
+        self.memory = []
         ##Load / Build model sec
         # self.model = self.build_continous_model()
         # self.target_model = self.build_continous_model()
@@ -478,11 +479,10 @@ class RLBot(Player):
     #don't compile model while loading
     def load_model(self, filepath):
         self.model = tf.keras.models.load_model(filepath, compile=False)
-
         self.model.compile(
             optimizer=tf.keras.optimizers.Adam(learning_rate=self.learning_rate),
             loss={'action_output': 'mean_squared_error', 'raise_output': 'mean_squared_error'}
         )
-
-        self.update_target_model()
+        self.target_model = tf.keras.models.clone_model(self.model)
+        self.target_model.set_weights(self.model.get_weights())
         print(f"Model loaded and recompiled from {filepath}")

@@ -15,7 +15,6 @@ from poker_serializer import PokerSerializer
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 
 def convert_numpy_types(obj):
-
     if isinstance(obj, np.float32) or isinstance(obj, np.float64):
         return float(obj)
     elif isinstance(obj, np.int32) or isinstance(obj, np.int64):
@@ -28,22 +27,32 @@ def convert_numpy_types(obj):
         return obj
 
 class Simulation:
-    def __init__(self, game, iterations=1000) -> None:
+    def __init__(self, game, number_of_games=10, iterations=1000, starting_chips=1000) -> None:
         self.game = game
         self.iterations = iterations
+        self.number_of_games = number_of_games
+        self.starting_chips = starting_chips
 
     def run_simulation(self):
         hands = []
+        rounds_per_game = self.iterations // self.number_of_games
 
-        for i in range(self.iterations):
-            self.game.play()
-            game_state = GameState.from_game(self.game)
-            hands.append(PokerSerializer.game_state_to_dict(game_state))
-            print(f"Game {i+1} out of {self.iterations} finished")
-            
+        # Loop over each "game"
+        for i in range(self.number_of_games):
+            # Reset each player's chip count and bet at the start of the game
+            for player in self.game.players:
+                player.chips = self.starting_chips
+                player.bet = 0
+
+            for j in range(rounds_per_game):
+                print(f"Playing game [{i+1}/{self.number_of_games}]: Round {j+1} out of {rounds_per_game}")
+                self.game.play()
+                game_state = GameState.from_game(self.game)
+                hands.append(PokerSerializer.game_state_to_dict(game_state))
+                # Clear console (this works on Windows; use 'clear' for Linux/Mac if needed)
+                os.system('cls')
        
         with open('hands.json', 'w') as f:
-            hands 
             json.dump(hands, f, indent=4)
         
         return hands
@@ -81,7 +90,6 @@ class Simulation:
             winners = hand.get('winners', [])
             for winner in winners:
                 win_counts[winner] += 1
-                
                 for player in players:
                     if player['name'] == winner:
                         hand_cards = [card['rank'] for card in player['hand']]
@@ -119,7 +127,6 @@ class Simulation:
         plt.tight_layout()
         plt.show()
     
-        
         plt.figure(figsize=(12, 6))
         sns.barplot(x='Card', y='Wins', data=cards_df, palette='coolwarm')
         plt.title('Card Ranks in Winning Hands')
@@ -131,20 +138,32 @@ class Simulation:
         print("Visualizations generated successfully.")
 
 if __name__ == "__main__":
-    rl_agent = RLBot("rla", 1000, state_size=138, action_size=4)
-    rl_agent.load_model(r'models\model.h5')  
+    rl_agent1 = RLBot("RLA V1", 1000, state_size=138, action_size=4)
+    rl_agent1.load_model(r"weights/model_v1.h5")
+    
+    
+    rl_agent2 = RLBot("RLA V2", 1000, state_size=138, action_size=4)
+    rl_agent2.load_model(r"weights/model_v2.h5")
+
+    ##we have already loaded the weights
+    rl_agent1.epsilon = 0.0
+    rl_agent2.epsilon = 0.0
+                             
+    strategicAggro = bots.StrategicBot("StrategicAggro", 1000, 
+                                       aggression_level=0.8, tightness_level=0.4, bluff_frequency=0.4)
+    strategicTight = bots.StrategicBot("StrategicTight", 1000, 
+                                       aggression_level=0.3, tightness_level=0.7, bluff_frequency=0.1)
     
     players = [
-        bots.RandomBot("Random", 1000),
-        bots.LearningBot("Learning", 1000),
-        bots.StrategicBot("Strategic", 1000, aggression_level=0.5, tightness_level=0.5, bluff_frequency=0.2),
-        bots.StrategicBot("StrategicTight", 1000, aggression_level=0.3, tightness_level=0.7, bluff_frequency=0.1),
-        bots.StrategicBot("StrategicAggro", 1000, aggression_level=0.8, tightness_level=0.4, bluff_frequency=0.4),
-        rl_agent
+        rl_agent1,
+        strategicAggro,
+        rl_agent2,
+        strategicTight,    
+        
     ]
-
+    
     game = TexasHoldem(small_blind=5, big_blind=10, player_list=players)
 
-    sim = Simulation(game, iterations=1000)
+    sim = Simulation(game, number_of_games=10, iterations=1000, starting_chips=1000)
     sim.run_simulation()
     sim.display_stats()
