@@ -6,6 +6,7 @@ import json
 import pandas as pd
 import seaborn as sns
 from collections import Counter
+import player
 
 from rl_bot import RLBot
 import bots  
@@ -145,21 +146,26 @@ def simulate_instance(sim_config):
       - iterations: number of rounds for this instance.
       - starting_chips: initial chip count for each player.
     """
-    rl_agent1 = RLBot("RLA V1", sim_config["starting_chips"], state_size=138, action_size=4)
-    rl_agent1.load_model("weights/model_v1.h5")
+    # rl_agent1 = RLBot("RLA V1", sim_config["starting_chips"], state_size=138, action_size=4)
+    # rl_agent1.load_model("weights/model_v1.h5")
     
-    rl_agent1.epsilon = 0.0
+    # rl_agent1.epsilon = 0.0
 
-    rl_agent2 = RLBot("RLA V2", sim_config["starting_chips"], state_size=138, action_size=4)
-    rl_agent2.load_model("weights/model_v2.h5")
-    rl_agent2.epsilon = 0.0
+    # rl_agent2 = RLBot("RLA V2", sim_config["starting_chips"], state_size=138, action_size=4)
+    # rl_agent2.load_model("weights/model_v2.h5")
+    # rl_agent2.epsilon = 0.0
 
-    strategicAggro = bots.StrategicBot("StrategicAggro", sim_config["starting_chips"], 
-                                       aggression_level=0.8, tightness_level=0.4, bluff_frequency=0.4)
-    strategicTight = bots.StrategicBot("StrategicTight", sim_config["starting_chips"], 
-                                       aggression_level=0.3, tightness_level=0.7, bluff_frequency=0.1)
+    # strategicAggro = bots.StrategicBot("StrategicAggro", sim_config["starting_chips"], 
+    #                                    aggression_level=0.8, tightness_level=0.4, bluff_frequency=0.4)
+    # strategicTight = bots.StrategicBot("StrategicTight", sim_config["starting_chips"], 
+    #                                    aggression_level=0.3, tightness_level=0.7, bluff_frequency=0.1)
 
-    players = [rl_agent1, strategicAggro, rl_agent2, strategicTight]
+    # players = [rl_agent1, strategicAggro, rl_agent2, strategicTight]
+
+
+    players = [player('Ludwig', bots.RandomBot('Random'))]
+
+
 
     game = TexasHoldem(small_blind=5, big_blind=10, player_list=players)
 
@@ -173,58 +179,52 @@ def simulate_instance(sim_config):
 import concurrent.futures
 import json
 
-if __name__ == "__main__":
-    # Configuration for each simulation instance.
-    sim_config = {
-        "iterations": 100,         # Number of rounds per instance
-        "starting_chips": 1000     # Initial chip count for players
-    }
-    
-    num_instances = 4  # For example, run 4 simulation instances concurrently.
-    all_hands = []
-
-    with concurrent.futures.ProcessPoolExecutor() as executor:
-        # Map the simulation function to a list of configurations.
-        results = executor.map(simulate_instance, [sim_config] * num_instances)
-    
-    # Combine results from all instances.
-    for hands in results:
-        all_hands.extend(hands)
-    
-    # Save combined results to a file.
-    with open("all_hands.json", "w") as f:
-         json.dump(all_hands, f, indent=4)
-    
-    print("Simulation complete. Results saved to 'all_hands.json'.")
-
-
 # if __name__ == "__main__":
-#     rl_agent1 = RLBot("RLA V1", 1000, state_size=138, action_size=4)
-#     rl_agent1.load_model(r"weights/model_v1.h5")
+#     # Configuration for each simulation instance.
+#     sim_config = {
+#         "iterations": 100,         # Number of rounds per instance
+#         "starting_chips": 1000     # Initial chip count for players
+#     }
     
-    
-#     rl_agent2 = RLBot("RLA V2", 1000, state_size=138, action_size=4)
-#     rl_agent2.load_model(r"weights/model_v2.h5")
+#     num_instances = 8  # For example, run 4 simulation instances concurrently.
+#     all_hands = []
 
-#     ##we have already loaded the weights
-#     rl_agent1.epsilon = 0.0
-#     rl_agent2.epsilon = 0.0
+#     with concurrent.futures.ProcessPoolExecutor() as executor:
+#         # Map the simulation function to a list of configurations.
+#         results = executor.map(simulate_instance, [sim_config] * num_instances)
+    
+#     for hands in results:
+#         all_hands.extend(hands)
+    
+#     with open("all_hands.json", "w") as f:
+#          json.dump(all_hands, f, indent=4)
+    
+#     print("Simulation complete. Results saved to 'all_hands.json'.")
+
+
+if __name__ == "__main__":
+    rl_agent1 = RLBot("RLA V1", 1000, state_size=138, action_size=4)
+    rl_agent1.load_model(r"weights/model_v1.h5")
+    
+    
+    rl_agent2 = RLBot("RLA V2", 1000, state_size=138, action_size=4)
+    rl_agent2.load_model(r"weights/model_v2.h5")
+
+    ##we have already loaded the weights
+    rl_agent1.epsilon = 0.0
+    rl_agent2.epsilon = 0.0
                              
-#     strategicAggro = bots.StrategicBot("StrategicAggro", 1000, 
-#                                        aggression_level=0.8, tightness_level=0.4, bluff_frequency=0.4)
-#     strategicTight = bots.StrategicBot("StrategicTight", 1000, 
-#                                        aggression_level=0.3, tightness_level=0.7, bluff_frequency=0.1)
+    strategicAggro = bots.StrategicBot("StrategicAggro", 1000, 
+                                       aggression_level=0.8, tightness_level=0.4, bluff_frequency=0.4)
+    strategicTight = bots.StrategicBot("StrategicTight", 1000, 
+                                       aggression_level=0.3, tightness_level=0.7, bluff_frequency=0.1)
     
-#     players = [
-#         rl_agent1,
-#         strategicAggro,
-#         rl_agent2,
-#         strategicTight,    
-        
-#     ]
-    
-#     game = TexasHoldem(small_blind=5, big_blind=10, player_list=players)
+    players = [player('Ludwig', 1000), bots.RandomBot('Random', 1000)]
 
-#     sim = Simulation(game, number_of_games=10, iterations=1000, starting_chips=1000)
-#     sim.run_simulation()
-#     sim.display_stats()
+
+    
+    game = TexasHoldem(small_blind=5, big_blind=10, player_list=players)
+
+    sim = Simulation(game, number_of_games=10, iterations=1000, starting_chips=1000)
+    sim.run_simulation()
+    sim.display_stats()
